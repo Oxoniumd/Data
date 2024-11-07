@@ -1,0 +1,58 @@
+---
+title: "Malaria detector"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+```{r}
+url <- "https://raw.githubusercontent.com/HackBio-Internship/public_datasets/main/R/lancet_malaria.txt"
+Malaria <- read.table(url, header = TRUE, sep = "\t") 
+```
+
+```{r}
+data <- Malaria
+
+malaria_cleaned <- na.omit(data)
+
+str(malaria_cleaned)
+
+```
+
+```{r}
+ggplot(malaria_cleaned, aes(x = X..Microscopy..Positive, y = X..PCR..Positive)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +  # Add a 1:1 line
+  labs(x = "Microscopy % Positive", y = "PCR % Positive", title = "PCR % vs Microscopy %")
+```
+
+```{r}
+# Add prevalence ratio to the dataframe
+data <- malaria_cleaned %>%
+  mutate(Prevalence_Ratio = Microscopy.N.Positive / PCR.N.Positive)
+
+# Check the updated dataframe
+head(data)
+
+```
+```{r}
+# Scatter plot of PCR % vs Microscopy % for four global regions
+ggplot(data, aes(x = X..Microscopy..Positive, y = X..PCR..Positive)) +
+  geom_point() +
+  facet_wrap(~ Global.Region) +  # Facet by global region
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +  # Add a 1:1 line
+  labs(x = "Microscopy % Positive", y = "PCR % Positive", title = "PCR % vs Microscopy % by Region")
+
+```
+```{r}
+# Boxplot of prevalence ratio by global region
+ggplot(data, aes(x = Global.Region, y = Prevalence_Ratio)) +
+  geom_boxplot() +
+  labs(x = "Global Region", y = "Prevalence Ratio", 
+       title = "Prevalence Ratio by Global Region")
+
+```
+
