@@ -1,0 +1,85 @@
+---
+title: "Malaria detector"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+```
+```{r}
+# Load the data from Url
+url <- "https://raw.githubusercontent.com/HackBio-Internship/public_datasets/main/R/lancet_malaria.txt"
+Malaria <- read.table(url, header = TRUE, sep = "\t") 
+```
+
+```{r}
+data <- Malaria
+
+# Removing rows with NA values
+malaria_cleaned <- na.omit(data)
+
+# check the structure of the data
+str(malaria_cleaned)
+
+```
+
+```{r}
+# Scatter plot of PCR % against Microscopy %
+ggplot(malaria_cleaned, aes(x = X..Microscopy..Positive, y = X..PCR..Positive)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +  # Add a 1:1 line
+  labs(x = "Microscopy % Positive", y = "PCR % Positive", title = "PCR % vs Microscopy %")
+```
+This is a combined scatter plot of PCR % Positive against Microscopy % Positive across all regions.
+The 1:1 dotted line serves as a reference. Points below this line indicate higher PCR detection rates than microscopy.
+There is a clustering of points below the 1:1 line, especially at lower microscopy percentages. This pattern suggests that across the dataset, PCR consistently detects more cases at lower infection levels, indicating widespread submicroscopic infections in the sample.
+
+```{r}
+# Add prevalence ratio to the dataframe
+data <- malaria_cleaned %>%
+  mutate(Prevalence_Ratio = Microscopy.N.Positive / PCR.N.Positive)
+
+# Check the updated dataframe
+head(data)
+
+```
+```{r}
+# Scatter plot of PCR % vs Microscopy % for four global regions
+ggplot(data, aes(x = X..Microscopy..Positive, y = X..PCR..Positive)) +
+  geom_point() +
+  facet_wrap(~ Global.Region) +  # Facet by global region
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +  # Add a 1:1 line
+  labs(x = "Microscopy % Positive", y = "PCR % Positive", title = "PCR % vs Microscopy % by Region")
+
+```
+This scatter plot shows PCR % Positive against Microscopy % Positive, separated into two panels for East Africa and West Africa.
+East Africa:
+There are many points below the 1:1 dotted line, indicating that PCR detects more positive cases than microscopy at lower percentages, suggesting a significant number of submicroscopic infections.
+This is especially visible at lower microscopy percentages, where the PCR percentages are relatively higher.
+West Africa:
+There is still a noticeable presence of points below the 1:1 line, but the distribution appears slightly closer to the line than in East Africa.
+This suggests that while submicroscopic infections are present, the difference between PCR and microscopy detection rates may be less pronounced in West Africa compared to East Africa.
+```{r}
+# Boxplot of prevalence ratio by global region
+ggplot(data, aes(x = Global.Region, y = Prevalence_Ratio)) +
+  geom_boxplot() +
+  labs(x = "Global Region", y = "Prevalence Ratio", 
+       title = "Prevalence Ratio by Global Region")
+
+```
+This boxplot shows the distribution of the prevalence ratio (Microscopy Positive / PCR Positive) for East Africa and West Africa.
+East Africa:
+The boxplot has a wider range with some outliers, indicating variability in the prevalence ratio.
+The median value appears to be lower than West Africa, which aligns with the observation that PCR tends to detect more positives than microscopy in this region.
+West Africa:
+The distribution is narrower and centered around a slightly higher median than East Africa.
+This suggests that the prevalence ratio in West Africa is closer to 1, meaning that microscopy results are more aligned with PCR in this region.
+
+
+conclusion:
+Overall, PCR tends to identify more infections than microscopy, particularly at lower prevalence rates, reinforcing the presence of submicroscopic infections in the population.
+East Africa shows a higher density of submicroscopic infections as indicated by the larger gap between PCR and microscopy rates at lower microscopy values.
+The lower prevalence ratio in East Africa further supports the idea that there is a higher density of submicroscopic infections in East Africa compared to West Africa
